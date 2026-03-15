@@ -61,7 +61,8 @@ resource "hcloud_server" "valheim" {
     server_name    = var.server_name
     world_name     = var.world_name
     server_pass    = var.server_pass
-    admin_steam_ids = var.admin_steam_ids
+    admin_steam_ids     = var.admin_steam_ids
+    discord_webhook_url = var.discord_webhook_url
   })
 }
 

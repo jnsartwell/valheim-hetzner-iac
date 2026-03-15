@@ -44,3 +44,10 @@ variable "admin_steam_ids" {
   type        = list(string)
   default     = ["76561198088427001"]
 }
+
+variable "discord_webhook_url" {
+  description = "Discord webhook URL for server notifications"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
