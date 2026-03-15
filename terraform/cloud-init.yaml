@@ -7,17 +7,7 @@ runcmd:
   - mount ${volume_device} /mnt/valheim-world
   - echo "${volume_device} /mnt/valheim-world ext4 defaults,nofail 0 2" >> /etc/fstab
 
-  # Install scripts
-  - mkdir -p /opt/valheim/scripts /opt/valheim/docker
-  - cp /var/lib/cloud/instance/scripts/backup.sh /opt/valheim/scripts/backup.sh
-  - cp /var/lib/cloud/instance/scripts/start.sh /opt/valheim/scripts/start.sh
-  - cp /var/lib/cloud/instance/scripts/stop.sh /opt/valheim/scripts/stop.sh
-  - chmod +x /opt/valheim/scripts/backup.sh /opt/valheim/scripts/start.sh /opt/valheim/scripts/stop.sh
-  - cp /var/lib/cloud/instance/scripts/compose.yaml /opt/valheim/docker/compose.yaml
-
   # Install and enable backup timer
-  - cp /var/lib/cloud/instance/scripts/valheim-backup.service /etc/systemd/system/valheim-backup.service
-  - cp /var/lib/cloud/instance/scripts/valheim-backup.timer /etc/systemd/system/valheim-backup.timer
   - systemctl daemon-reload
   - systemctl enable --now valheim-backup.timer
 
@@ -39,7 +29,7 @@ write_files:
       SERVER_PASS=${server_pass}
       SERVER_PUBLIC=false
 
-  - path: /var/lib/cloud/instance/scripts/compose.yaml
+  - path: /opt/valheim/docker/compose.yaml
     content: |
       services:
         valheim:
@@ -65,7 +55,7 @@ write_files:
             - sys_nice
           stop_grace_period: 60s
 
-  - path: /var/lib/cloud/instance/scripts/backup.sh
+  - path: /opt/valheim/scripts/backup.sh
     permissions: "0755"
     content: |
       #!/usr/bin/env bash
@@ -84,7 +74,7 @@ write_files:
       find "$BACKUP_DIR" -name "world_*.tar.gz" -mtime "+$${RETENTION_DAYS}" -delete
       echo "[backup] Pruned backups older than $${RETENTION_DAYS} days"
 
-  - path: /var/lib/cloud/instance/scripts/start.sh
+  - path: /opt/valheim/scripts/start.sh
     permissions: "0755"
     content: |
       #!/usr/bin/env bash
@@ -93,7 +83,7 @@ write_files:
       docker compose -f /opt/valheim/docker/compose.yaml --env-file /opt/valheim/docker/.env up -d
       echo "[start] Done. Check logs with: docker logs -f valheim"
 
-  - path: /var/lib/cloud/instance/scripts/stop.sh
+  - path: /opt/valheim/scripts/stop.sh
     permissions: "0755"
     content: |
       #!/usr/bin/env bash
@@ -102,7 +92,7 @@ write_files:
       docker compose -f /opt/valheim/docker/compose.yaml --env-file /opt/valheim/docker/.env stop
       echo "[stop] Server stopped."
 
-  - path: /var/lib/cloud/instance/scripts/valheim-backup.service
+  - path: /etc/systemd/system/valheim-backup.service
     content: |
       [Unit]
       Description=Valheim world backup
@@ -113,7 +103,7 @@ write_files:
       Type=oneshot
       ExecStart=/opt/valheim/scripts/backup.sh
 
-  - path: /var/lib/cloud/instance/scripts/valheim-backup.timer
+  - path: /etc/systemd/system/valheim-backup.timer
     content: |
       [Unit]
       Description=Valheim world backup every 6 hours
