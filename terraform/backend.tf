@@ -1,7 +1,6 @@
 terraform {
   cloud {
-    # TODO: replace with your Terraform Cloud organization name
-    organization = "your-org-name"
+    organization = "jnsartwell"
 
     workspaces {
       name = "valheim"

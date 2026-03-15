@@ -1,7 +1,8 @@
 #cloud-config
 
 runcmd:
-  # Mount world volume
+  # Mount world volume (wait for device to appear after Terraform attaches it)
+  - until [ -b "${volume_device}" ]; do sleep 2; done
   - mkdir -p /mnt/valheim-world
   - mount ${volume_device} /mnt/valheim-world
   - echo "${volume_device} /mnt/valheim-world ext4 defaults,nofail 0 2" >> /etc/fstab

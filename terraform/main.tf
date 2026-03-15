@@ -68,5 +68,5 @@ resource "hcloud_server" "valheim" {
 resource "hcloud_volume_attachment" "world" {
   volume_id = hcloud_volume.world.id
   server_id = hcloud_server.valheim.id
-  automount = true
+  automount = false
 }
