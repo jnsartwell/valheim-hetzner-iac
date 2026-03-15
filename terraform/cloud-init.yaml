@@ -27,7 +27,7 @@ write_files:
       SERVER_NAME=${server_name}
       WORLD_NAME=${world_name}
       SERVER_PASS=${server_pass}
-      SERVER_PUBLIC=false
+      SERVER_PUBLIC=true
       DISCORD_WEBHOOK_URL=${discord_webhook_url}
 
   - path: /opt/valheim/docker/compose.yaml
@@ -46,7 +46,7 @@ write_files:
             SERVER_PORT: 2456
             WORLD_NAME: $${WORLD_NAME}
             SERVER_PASS: $${SERVER_PASS}
-            SERVER_PUBLIC: $${SERVER_PUBLIC:-false}
+            SERVER_PUBLIC: $${SERVER_PUBLIC:-true}
             BACKUPS: "false"
             UPDATE_CRON: "0 4 * * *"
             IDLE_DATAGRAM_MAX_COUNT: "0"
