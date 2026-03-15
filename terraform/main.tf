@@ -4,6 +4,10 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "~> 1.49"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
   }
 
   required_version = ">= 1.9"
@@ -11,6 +15,10 @@ terraform {
 
 provider "hcloud" {
   token = var.hcloud_token
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
 
 # SSH Key
@@ -71,4 +79,14 @@ resource "hcloud_volume_attachment" "world" {
   volume_id = hcloud_volume.world.id
   server_id = hcloud_server.valheim.id
   automount = false
+}
+
+# DNS record — DNS only (no proxy), Valheim uses UDP
+resource "cloudflare_record" "valheim" {
+  zone_id = var.cloudflare_zone_id
+  name    = "valheim"
+  content = hcloud_server.valheim.ipv4_address
+  type    = "A"
+  ttl     = 60
+  proxied = false
 }

@@ -19,6 +19,7 @@ jobs:
       TF_VAR_world_name: ${{ secrets.WORLD_NAME }}
       TF_VAR_server_pass: ${{ secrets.SERVER_PASS }}
       TF_VAR_discord_webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     steps:
       - name: Checkout
@@ -47,6 +48,7 @@ jobs:
           echo "| | |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| **Server IP** | \`$IP\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Connect** | \`$IP:2456\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Hostname** | \`valheim.redmist.online\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Connect** | \`valheim.redmist.online:2456\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "> Server may take 3–5 minutes to finish initializing." >> $GITHUB_STEP_SUMMARY

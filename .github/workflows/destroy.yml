@@ -23,6 +23,7 @@ jobs:
       TF_VAR_world_name: ${{ secrets.WORLD_NAME }}
       TF_VAR_server_pass: ${{ secrets.SERVER_PASS }}
       TF_VAR_discord_webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     steps:
       - name: Validate confirmation

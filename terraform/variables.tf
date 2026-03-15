@@ -45,6 +45,18 @@ variable "admin_steam_ids" {
   default     = ["76561198088427001"]
 }
 
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token with Edit zone DNS permissions"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone ID for redmist.online"
+  type        = string
+  default     = "04ef9294de8a84aec07f31302cc3b5f1"
+}
+
 variable "discord_webhook_url" {
   description = "Discord webhook URL for server notifications"
   type        = string
