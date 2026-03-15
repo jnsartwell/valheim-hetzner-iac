@@ -44,6 +44,10 @@ resource "hcloud_volume" "world" {
   size      = 10
   location  = var.location
   format    = "ext4"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Server
