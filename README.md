@@ -45,7 +45,9 @@ Self-hosted Valheim server on Hetzner Cloud. Infrastructure is managed with Terr
 - Add the public key content → `SSH_PUBLIC_KEY` GitHub secret
 - Add the private key content → `SSH_PRIVATE_KEY` GitHub secret
 
-**5. GitHub secrets** (repo → Settings → Secrets and variables → Actions)
+**5. GitHub secrets and variables** (repo → Settings → Secrets and variables → Actions)
+
+Secrets:
 
 | Secret | Description |
 |---|---|
@@ -53,11 +55,16 @@ Self-hosted Valheim server on Hetzner Cloud. Infrastructure is managed with Terr
 | `HCLOUD_TOKEN` | Hetzner API token |
 | `SSH_PUBLIC_KEY` | SSH public key content |
 | `SSH_PRIVATE_KEY` | SSH private key content |
-| `SERVER_NAME` | Server name shown in the browser |
-| `WORLD_NAME` | World save file name |
 | `SERVER_PASS` | Server password (min 5 characters) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token |
 | `DISCORD_WEBHOOK_URL` | Discord channel webhook for server notifications |
+
+Variables:
+
+| Variable | Description |
+|---|---|
+| `SERVER_NAME` | Server name shown in the in-game browser |
+| `WORLD_NAME` | World save file name |
 
 ## After deploying
 
@@ -90,7 +97,7 @@ The server posts to a Discord channel on key events:
 
 | Event | Message |
 |---|---|
-| Server ready | "One Eyes Keep is online! Connect now." |
-| Server stopping | "One Eyes Keep is going offline." |
+| Server ready | "RedMist is online! Connect now." |
+| Server stopping | "RedMist is going offline." |
 
 Set the `DISCORD_WEBHOOK_URL` GitHub secret to enable. Create a webhook in Discord under Server Settings → Integrations → Webhooks.

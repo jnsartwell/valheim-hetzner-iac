@@ -33,7 +33,7 @@ jobs:
 
       - name: Write job summary
         run: |
-          echo "## One Eye's Keep — Powered On" >> $GITHUB_STEP_SUMMARY
+          echo "## RedMist — Powered On" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| | |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY

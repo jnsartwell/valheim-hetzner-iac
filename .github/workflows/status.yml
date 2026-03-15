@@ -43,7 +43,7 @@ jobs:
 
       - name: Write job summary
         run: |
-          echo "## One Eye's Keep — Status" >> $GITHUB_STEP_SUMMARY
+          echo "## RedMist — Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Hetzner Server" >> $GITHUB_STEP_SUMMARY
           echo "| | |" >> $GITHUB_STEP_SUMMARY

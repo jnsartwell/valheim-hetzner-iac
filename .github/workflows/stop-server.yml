@@ -44,7 +44,7 @@ jobs:
 
       - name: Write job summary
         run: |
-          echo "## One Eye's Keep — Powered Off" >> $GITHUB_STEP_SUMMARY
+          echo "## RedMist — Powered Off" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "World saved. Server powered off at $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
