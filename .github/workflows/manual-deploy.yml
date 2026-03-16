@@ -1,21 +1,16 @@
-name: Deploy Valheim Server
+name: Manual Deploy Valheim Server
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'terraform/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
     name: Terraform Apply
     runs-on: ubuntu-latest
+    environment: infra
     defaults:
       run:
         working-directory: terraform
-    concurrency:
-      group: terraform-apply
-      cancel-in-progress: false
 
     env:
       TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
@@ -40,8 +35,11 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply tfplan
 
       - name: Write job summary
         run: |

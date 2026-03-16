@@ -10,18 +10,31 @@ Self-hosted Valheim server on Hetzner Cloud. Infrastructure is managed with Terr
 - **Terraform Cloud** stores remote state so GitHub Actions can manage infra without a local state file
 - **Cloudflare DNS** automatically updates `valheim.redmist.online` to the new server IP on every deploy
 
+## Developer flow
+
+All infrastructure changes go through a pull request:
+
+1. Create a branch and make your `terraform/` changes
+2. Open a PR targeting `main` — **Terraform Plan** runs automatically as a PR check
+3. Review the plan diff in the PR's job summary
+4. Get approval and merge — **Deploy Valheim Server** runs automatically and applies the plan
+
+For emergencies outside the normal flow, **Manual Deploy Valheim Server** is available via `workflow_dispatch` and requires `infra` environment approval before anything is applied.
+
 ## Workflows
 
-| Workflow | What it does |
-|---|---|
-| **Deploy Valheim Server** | Creates/rebuilds the server via `terraform apply`. Safe to run anytime — volume and world data persist. |
-| **Destroy Valheim Server** | Tears everything down including the volume. World data is gone. Type `DESTROY` to confirm. |
-| **Power Off Hetzner Server** | Gracefully stops the container then powers off the server. Hetzner billing continues. |
-| **Power On Hetzner Server** | Powers the server back on. Container starts automatically. |
-| **Restart Valheim Container** | Restarts the Docker container without touching the server. |
-| **Download World Backup** | Triggers a backup on the server and downloads it as a GitHub artifact (90 day retention). |
-| **Restore World Backup** | Restores a named GitHub artifact to the server. |
-| **Server Status** | Shows Hetzner server state, IP, container status, and memory. |
+| Workflow | Trigger | What it does |
+|---|---|---|
+| **Terraform Plan** | PR targeting `main` | Runs `terraform plan` and posts the diff to the job summary |
+| **Deploy Valheim Server** | Merge to `main` | Runs `terraform apply` — creates or updates infra. Volume and world data always persist. |
+| **Manual Deploy Valheim Server** | Manual (`workflow_dispatch`) | Force deploy outside the PR flow. Requires `infra` environment approval. |
+| **Destroy Valheim Server** | Manual | Tears everything down including the volume. World data is gone. Type `DESTROY` to confirm. |
+| **Power Off Hetzner Server** | Manual | Gracefully stops the container then powers off the server. Hetzner billing continues. |
+| **Power On Hetzner Server** | Manual | Powers the server back on. Container starts automatically. |
+| **Restart Valheim Container** | Manual | Restarts the Docker container without touching the server. |
+| **Download World Backup** | Manual / daily at 6am | Triggers a backup on the server and downloads it as a GitHub artifact (90 day retention). |
+| **Restore World Backup** | Manual | Restores a named GitHub artifact to the server. |
+| **Server Status** | Manual | Shows Hetzner server state, IP, container status, and memory. |
 
 ## One-time setup
 
@@ -45,7 +58,12 @@ Self-hosted Valheim server on Hetzner Cloud. Infrastructure is managed with Terr
 - Add the public key content → `SSH_PUBLIC_KEY` GitHub secret
 - Add the private key content → `SSH_PRIVATE_KEY` GitHub secret
 
-**5. GitHub secrets and variables** (repo → Settings → Secrets and variables → Actions)
+**5. GitHub Environment**
+- Repo → Settings → Environments → **New environment**, name it `infra`
+- Under **Deployment protection rules**, enable **Required reviewers** and add yourself
+- This gates the Manual Deploy workflow behind an approval step
+
+**6. GitHub secrets and variables** (repo → Settings → Secrets and variables → Actions)
 
 Secrets:
 
