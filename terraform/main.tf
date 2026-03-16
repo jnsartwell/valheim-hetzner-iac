@@ -60,6 +60,11 @@ resource "hcloud_server" "valheim" {
   server_type = "cpx31"
   image       = "docker-ce"
   location    = var.location
+  labels = {
+    managed-by  = "terraform"
+    project     = "valheim"
+    repo        = "jnsartwell.valheim"
+  }
 
   ssh_keys    = [hcloud_ssh_key.default.id]
   firewall_ids = [hcloud_firewall.valheim.id]
