@@ -10,12 +10,15 @@ jobs:
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: terraform
     concurrency:
       group: terraform-plan-${{ github.head_ref }}
       cancel-in-progress: true
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: terraform
 
     env:
       TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
@@ -40,25 +43,72 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
+        id: plan
         run: |
           set +e
           terraform plan -detailed-exitcode -no-color 2>&1 | tee plan_output.txt
-          PLAN_EXIT=${PIPESTATUS[0]}
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
           set -e
 
-          if [ $PLAN_EXIT -eq 1 ]; then
-            echo "## Plan Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat plan_output.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
+      - name: Post plan to PR
+        uses: actions/github-script@v7
+        if: always()
+        env:
+          PLAN_EXIT_CODE: ${{ steps.plan.outputs.exit_code }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const exitCode = parseInt(process.env.PLAN_EXIT_CODE);
+            const plan = fs.readFileSync('terraform/plan_output.txt', 'utf8');
+            const summary = plan.match(/^(Plan:|No changes\.)[^\n]*/m)?.[0] ?? '';
 
-          if [ $PLAN_EXIT -eq 0 ]; then
-            echo "## RedMist — No Infrastructure Changes" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "## RedMist — Planned Changes" >> $GITHUB_STEP_SUMMARY
-            echo '```hcl' >> $GITHUB_STEP_SUMMARY
-            cat plan_output.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          fi
+            const statusIcon = exitCode === 1 ? '❌' : exitCode === 0 ? '✅' : '⚠️';
+            const statusText = exitCode === 1 ? 'Plan failed' : exitCode === 0 ? 'No changes' : 'Changes detected';
+
+            const body = [
+              '## Terraform Plan',
+              '',
+              `${statusIcon} **${statusText}**${summary ? ` — \`${summary}\`` : ''}`,
+              '',
+              '<details>',
+              '<summary>Show plan</summary>',
+              '',
+              '```hcl',
+              plan.trim(),
+              '```',
+              '',
+              '</details>',
+              '',
+              `> Triggered by ${context.actor} @ \`${context.sha.slice(0, 7)}\``,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('## Terraform Plan')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail if plan errored
+        if: steps.plan.outputs.exit_code == '1'
+        run: exit 1
