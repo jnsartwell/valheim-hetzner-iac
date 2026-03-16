@@ -57,3 +57,10 @@ variable "discord_webhook_url" {
   sensitive   = true
   default     = ""
 }
+
+
+variable "dns_ttl" {
+  description = "TTL in seconds for the DNS A record"
+  type        = number
+  default     = 60
+}

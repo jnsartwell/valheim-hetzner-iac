@@ -54,3 +54,18 @@ variable "subdomain" {
   description = "DNS subdomain for the server (e.g. 'valheim' → valheim.redmist.online)"
   type        = string
 }
+
+variable "server_type" {
+  description = "Hetzner server type (e.g. 'cpx31', 'cpx41')"
+  type        = string
+}
+
+variable "volume_size" {
+  description = "Size of the persistent world volume in GB"
+  type        = number
+}
+
+variable "dns_ttl" {
+  description = "TTL in seconds for the DNS A record"
+  type        = number
+}

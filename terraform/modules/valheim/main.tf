@@ -39,7 +39,7 @@ resource "hcloud_firewall" "valheim" {
 # Block volume for world persistence
 resource "hcloud_volume" "world" {
   name     = "${var.name}-world"
-  size     = 10
+  size     = var.volume_size
   location = var.location
   format   = "ext4"
 }
@@ -47,7 +47,7 @@ resource "hcloud_volume" "world" {
 # Server
 resource "hcloud_server" "valheim" {
   name        = var.name
-  server_type = "cpx31"
+  server_type = var.server_type
   image       = "docker-ce"
   location    = var.location
   labels = {
@@ -82,6 +82,6 @@ resource "cloudflare_record" "valheim" {
   name    = var.subdomain
   content = hcloud_server.valheim.ipv4_address
   type    = "A"
-  ttl     = 60
+  ttl     = var.dns_ttl
   proxied = false
 }

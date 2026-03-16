@@ -37,5 +37,9 @@ module "redmist" {
 
   cloudflare_zone_id = var.cloudflare_zone_id
   subdomain          = "valheim"
+
+  server_type = "cpx31"
+  volume_size = 10
+  dns_ttl     = var.dns_ttl
 }
 
