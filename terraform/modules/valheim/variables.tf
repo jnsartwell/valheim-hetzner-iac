@@ -1,19 +1,13 @@
-variable "hcloud_token" {
-  description = "Hetzner Cloud API token"
+variable "name" {
+  description = "Base name used for Hetzner resource naming (e.g. 'valheim', 'bifrost')"
   type        = string
-  sensitive   = true
+  default     = "valheim"
 }
 
-variable "cloudflare_api_token" {
-  description = "Cloudflare API token with Edit zone DNS permissions"
+variable "location" {
+  description = "Hetzner datacenter location"
   type        = string
-  sensitive   = true
-}
-
-variable "cloudflare_zone_id" {
-  description = "Cloudflare zone ID for redmist.online"
-  type        = string
-  default     = "04ef9294de8a84aec07f31302cc3b5f1"
+  default     = "ash"
 }
 
 variable "ssh_public_key" {
@@ -56,4 +50,15 @@ variable "discord_webhook_url" {
   type        = string
   sensitive   = true
   default     = ""
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone ID for the domain"
+  type        = string
+}
+
+variable "subdomain" {
+  description = "DNS subdomain for the server (e.g. 'valheim' → valheim.redmist.online)"
+  type        = string
+  default     = "valheim"
 }
