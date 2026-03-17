@@ -5,55 +5,39 @@ on:
   schedule:
     - cron: '0 6 * * *'
 
-env:
-  SERVER_HOST: ${{ vars.SERVER_HOST }}
-
 jobs:
   backup:
-    name: Run Backup & Download Artifact
+    name: Run Backup & Upload Artifact
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup SSH
-        uses: ./.github/actions/setup-ssh
+      - name: Backup world
+        id: backup
+        uses: ./.github/actions/backup-world
         with:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          server_host: ${{ env.SERVER_HOST }}
-
-      - name: Trigger backup on server
-        run: |
-          ssh root@${{ env.SERVER_HOST }} "/opt/valheim/scripts/backup.sh"
-
-      - name: Download latest backup
-        run: |
-          LATEST=$(ssh root@${{ env.SERVER_HOST }} \
-            "ls -t /mnt/valheim-world/backups/world_*.tar.gz 2>/dev/null | head -1")
-          if [ -z "$LATEST" ]; then
-            echo "No backups found yet — server may not have run long enough."
-            exit 1
-          fi
-          scp root@${{ env.SERVER_HOST }}:"$LATEST" world-backup.tar.gz
-
-      - name: Set backup timestamp
-        run: echo "BACKUP_TIMESTAMP=$(date -u +%Y%m%d-%H%M)" >> $GITHUB_ENV
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: valheim-world-${{ vars.WORLD_NAME }}-${{ env.BACKUP_TIMESTAMP }}
-          path: world-backup.tar.gz
-          retention-days: 90
+          server_host: ${{ vars.SERVER_HOST }}
+          world_name: ${{ vars.WORLD_NAME }}
+          artifact_prefix: snapshot
 
       - name: Write job summary
         run: |
-          echo "## RedMist — Backup Saved" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| | |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Artifact** | \`valheim-world-${{ vars.WORLD_NAME }}-${{ env.BACKUP_TIMESTAMP }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Retention** | 90 days |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "> Use this artifact name when running the Restore workflow." >> $GITHUB_STEP_SUMMARY
+          ARTIFACT="${{ steps.backup.outputs.artifact_name }}"
+          if [ -n "$ARTIFACT" ]; then
+            echo "## Backup Saved" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| | |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| **Artifact** | \`$ARTIFACT\` |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Retention** | 90 days |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> Use this artifact name when running the Restore workflow." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## Backup Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Could not create backup. Check server connectivity." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
