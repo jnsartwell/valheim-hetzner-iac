@@ -6,8 +6,6 @@ inputs:
     required: true
   server_host:
     required: true
-  world_name:
-    required: true
   artifact_prefix:
     description: Prefix for the artifact name (e.g. 'pre-deploy', 'snapshot')
     required: false
@@ -26,6 +24,13 @@ runs:
       with:
         ssh_private_key: ${{ inputs.ssh_private_key }}
         server_host: ${{ inputs.server_host }}
+
+    - name: Capture metadata
+      id: meta
+      shell: bash
+      run: |
+        echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+        echo "timestamp=$(date -u +%Y%m%d-%H%M)" >> $GITHUB_OUTPUT
 
     - name: Trigger backup on server
       id: backup
@@ -53,7 +58,7 @@ runs:
       if: steps.download.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifact_prefix }}-${{ inputs.world_name }}-${{ github.run_id }}
+        name: ${{ inputs.artifact_prefix }}-${{ steps.meta.outputs.short_sha }}-${{ steps.meta.outputs.timestamp }}
         path: world-backup.tar.gz
         retention-days: 90
 
@@ -61,4 +66,4 @@ runs:
       id: set-output
       if: steps.download.outcome == 'success'
       shell: bash
-      run: echo "artifact_name=${{ inputs.artifact_prefix }}-${{ inputs.world_name }}-${{ github.run_id }}" >> $GITHUB_OUTPUT
+      run: echo "artifact_name=${{ inputs.artifact_prefix }}-${{ steps.meta.outputs.short_sha }}-${{ steps.meta.outputs.timestamp }}" >> $GITHUB_OUTPUT

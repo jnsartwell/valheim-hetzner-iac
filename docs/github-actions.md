@@ -69,7 +69,6 @@ Under **Deployment protection rules**, enable **Required reviewers** and add you
 | Variable | Used by | Purpose |
 |---|---|---|
 | `SERVER_NAME` | Plan, Deploy | Server name in the game browser |
-| `WORLD_NAME` | Plan, Deploy, Backup | World save file name |
 | `SERVER_HOST` | Backup, Restore, Restart, Status, Power Off | Hostname or IP for SSH access |
 | `CLOUDFLARE_ZONE_ID` | Plan, Deploy | Cloudflare zone ID (leave empty to skip DNS) |
 | `VALHEIM_ADMIN_IDS` | Plan, Deploy | Steam 64-bit IDs as JSON array (e.g. `["765..."]`) |

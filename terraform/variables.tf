@@ -63,12 +63,6 @@ variable "valheim_server_name" {
   default     = "Valheim Server"
 }
 
-variable "valheim_world_name" {
-  description = "Valheim world save file name"
-  type        = string
-  default     = "Midgard"
-}
-
 variable "valheim_server_pass" {
   description = "Valheim server password (min 5 characters)"
   type        = string

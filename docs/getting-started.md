@@ -81,7 +81,7 @@ Get notified in a Discord channel when the server comes online or goes offline. 
 | `server_type` | No | `cpx31` | Hetzner server type |
 | `volume_size` | No | `10` | Persistent volume size in GB |
 | `valheim_server_name` | No | `Valheim Server` | Name shown in the in-game server browser |
-| `valheim_world_name` | No | `Midgard` | World save file name |
+| `valheim_world_name` | No | `Midgard` | World save file name (hardcoded in `main.tf` for world switching) |
 | `valheim_admin_ids` | No | `[]` | Steam 64-bit IDs of server admins |
 | `allowed_ssh_ips` | No | `["0.0.0.0/0", "::/0"]` | IP ranges allowed to SSH in |
 | `discord_webhook_url` | No | `""` | Discord webhook URL (enables notifications) |
