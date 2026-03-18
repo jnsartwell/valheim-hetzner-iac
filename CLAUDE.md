@@ -50,7 +50,7 @@ Repository admins can self-merge without reviewer approval.
 
 ## GitHub Secrets and Variables
 
-Full tables with per-workflow usage are in `docs/github-actions.md`. Key secrets: `HCLOUD_TOKEN`, `TF_TOKEN_APP_TERRAFORM_IO`, `SSH_PRIVATE_KEY`, `SERVER_PASS`, `DISCORD_WEBHOOK_URL`, `CLOUDFLARE_API_TOKEN`. Key variables: `SERVER_NAME`, `WORLD_NAME`, `SERVER_HOST`, `CLOUDFLARE_ZONE_ID`, `VALHEIM_ADMIN_IDS`.
+Full tables with per-workflow usage are in `docs/github-actions.md`. Key secrets: `HCLOUD_TOKEN`, `TF_TOKEN_APP_TERRAFORM_IO`, `SSH_PRIVATE_KEY`, `SERVER_PASS`, `DISCORD_WEBHOOK_URL`, `CLOUDFLARE_API_TOKEN`. Key variables: `SERVER_NAME`, `SERVER_HOST`, `CLOUDFLARE_ZONE_ID`, `VALHEIM_ADMIN_IDS`.
 
 ## Backups
 
@@ -58,10 +58,10 @@ Automatic backups via `lloesche/valheim-server` (`BACKUPS=true`, every 6 hours, 
 
 ## World Switching
 
-Multiple world saves coexist on the volume under `/mnt/valheim-world/worlds_local/`. Terraform is the source of truth for which world is active via the `WORLD_NAME` variable.
+Multiple world saves coexist on the volume under `/mnt/valheim-world/worlds_local/`. Terraform is the source of truth for which world is active via `valheim_world_name` in `terraform/main.tf`.
 
 - **Upload a new world:** `./scripts/upload-world.sh --db <path> --fwl <path> --host <hostname>` (SCPs files directly to server volume)
-- **Switch worlds:** Change the `WORLD_NAME` GitHub variable and deploy (PR or Manual Deploy). Server picks up the new name from `.env` on container restart.
+- **Switch worlds:** Change `valheim_world_name` in `terraform/main.tf` and deploy via PR. Server picks up the new name from `.env` on container restart.
 
 ## Operational workflows and SSH
 
@@ -74,7 +74,7 @@ Hook env vars (`POST_SERVER_LISTENING_HOOK`, `PRE_SERVER_SHUTDOWN_HOOK`) run `cu
 ## Code style and conventions
 
 - **Commit messages:** Viking/Norse-themed language (see git log for examples)
-- **Branching:** Always pull latest `main` before creating feature branches
+- **Branching:** Always pull latest `main` before creating feature branches. Branches that only switch the active world use the `world-switch/` prefix (e.g. `world-switch/panthera`).
 - **Terraform:** Provider versions pinned with `~>`. Variables have sensible defaults where possible.
 - **Shell scripts:** `set -euo pipefail`, double-quote variables, validate inputs before acting
 

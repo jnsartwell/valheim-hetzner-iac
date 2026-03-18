@@ -20,7 +20,6 @@ jobs:
         with:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           server_host: ${{ vars.SERVER_HOST }}
-          world_name: ${{ vars.WORLD_NAME }}
           artifact_prefix: snapshot
 
       - name: Write job summary
