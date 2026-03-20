@@ -64,8 +64,7 @@ resource "hcloud_server" "valheim" {
 
   provisioner "remote-exec" {
     inline = [
-      "cloud-init status --wait || [ $? -eq 2 ]",
-      "cloud-init status --long"
+      "cloud-init status --wait; rc=$?; echo \"cloud-init exited with code $rc\"; cloud-init status --long; if [ $rc -ne 0 ] && [ $rc -ne 2 ]; then echo 'cloud-init failed — dumping logs:'; cat /var/log/cloud-init-output.log; exit $rc; fi"
     ]
   }
 
@@ -76,8 +75,12 @@ resource "hcloud_server" "valheim" {
 
   provisioner "remote-exec" {
     inline = [
+      "set -euo pipefail",
+      "echo 'Setting script permissions...'",
       "chmod +x /opt/valheim/scripts/*.sh",
-      "docker compose -f /opt/valheim/scripts/compose.yaml --env-file /opt/valheim/docker/.env up -d"
+      "echo 'Starting Docker Compose...'",
+      "docker compose -f /opt/valheim/scripts/compose.yaml --env-file /opt/valheim/docker/.env up -d || { echo 'docker compose failed — dumping logs:'; docker compose -f /opt/valheim/scripts/compose.yaml logs; exit 1; }",
+      "echo 'Provisioning complete.'"
     ]
   }
 }
