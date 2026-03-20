@@ -97,6 +97,12 @@ jobs:
           server_host: ${{ vars.SERVER_HOST }}
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Setup SSH to new server
+        uses: ./.github/actions/setup-ssh
+        with:
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          server_host: ${{ vars.SERVER_HOST }}
+
       - name: Ensure container is running
         run: |
           ssh root@${{ vars.SERVER_HOST }} "/opt/valheim/scripts/start.sh"
