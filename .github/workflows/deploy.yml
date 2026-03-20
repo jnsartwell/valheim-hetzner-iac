@@ -16,7 +16,6 @@ env:
   TF_VAR_discord_webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
   TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   TF_VAR_cloudflare_zone_id: ${{ vars.CLOUDFLARE_ZONE_ID }}
-  TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
 jobs:
   plan:
@@ -87,26 +86,6 @@ jobs:
       - name: Terraform Apply
         run: terraform apply tfplan
 
-      - name: Restore world data
-        id: restore
-        if: steps.backup.outputs.artifact_name != ''
-        uses: ./.github/actions/restore-world
-        continue-on-error: true
-        with:
-          artifact_name: ${{ steps.backup.outputs.artifact_name }}
-          server_host: ${{ vars.SERVER_HOST }}
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Setup SSH to new server
-        uses: ./.github/actions/setup-ssh
-        with:
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          server_host: ${{ vars.SERVER_HOST }}
-
-      - name: Ensure container is running
-        run: |
-          ssh root@${{ vars.SERVER_HOST }} "/opt/valheim/scripts/start.sh"
-
       - name: Write job summary
         run: |
           IP=$(terraform output -raw server_ip)
@@ -126,6 +105,5 @@ jobs:
           if [ -n "$BACKUP" ]; then
             echo "| **Pre-deploy backup** | \`$BACKUP\` |" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "| **World restore** | \`${{ steps.restore.outcome || 'skipped' }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "> Server may take 3–5 minutes to finish initializing." >> $GITHUB_STEP_SUMMARY
