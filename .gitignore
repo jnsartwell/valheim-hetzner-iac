@@ -7,3 +7,8 @@ terraform/*.tfplan
 
 # OS
 .DS_Store
+
+# Session context (auto-generated, not tracked)
+PROGRESS.md
+SESSION_SUMMARY.md
+.claude/
