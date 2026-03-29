@@ -51,6 +51,7 @@ write_files:
             BACKUPS_CRON: "0 */6 * * *"
             BACKUPS_DIRECTORY: /config/backups
             BACKUPS_MAX_AGE: "7"
+            BEPINEX: "true"
             PRE_SUPERVISOR_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Supervisor starting...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             PRE_BOOTSTRAP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Bootstrapping...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             POST_BOOTSTRAP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Bootstrap complete.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
