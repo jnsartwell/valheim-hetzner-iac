@@ -45,7 +45,7 @@ Layout on the volume:
 /mnt/valheim-world/
 ├── worlds_local/          # World saves — a per-world directory (1.0+) or legacy .db/.fwl pair
 ├── backups/               # Automatic backup archives
-└── adminlist.txt          # Server admin Steam IDs
+└── adminlist.txt          # Server admin IDs, "V_"-prefixed (Valheim 1.0+ requirement)
 ```
 
 ## SSH access

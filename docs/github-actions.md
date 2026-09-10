@@ -71,7 +71,7 @@ Under **Deployment protection rules**, enable **Required reviewers** and add you
 | `SERVER_NAME` | Plan, Deploy | Server name in the game browser |
 | `SERVER_HOST` | Backup, Restore, Restart, Status, Power Off | Hostname or IP for SSH access |
 | `CLOUDFLARE_ZONE_ID` | Plan, Deploy | Cloudflare zone ID (leave empty to skip DNS) |
-| `VALHEIM_ADMIN_IDS` | Plan, Deploy | Steam 64-bit IDs as JSON array (e.g. `["765..."]`) |
+| `VALHEIM_ADMIN_IDS` | Plan, Deploy | Steam 64-bit IDs as JSON array (e.g. `["765..."]`). A bare ID is auto-prefixed with `V_` at deploy time — see [Getting Started](getting-started.md) — so either form works. |
 
 ### 4. Terraform Cloud
 

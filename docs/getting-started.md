@@ -82,7 +82,7 @@ Get notified in a Discord channel when the server comes online or goes offline. 
 | `volume_size` | No | `10` | Persistent volume size in GB |
 | `valheim_server_name` | No | `Valheim Server` | Name shown in the in-game server browser |
 | `valheim_world_name` | No | `Midgard` | World save file name (hardcoded in `main.tf` for world switching) |
-| `valheim_admin_ids` | No | `[]` | Steam 64-bit IDs of server admins |
+| `valheim_admin_ids` | No | `[]` | Steam 64-bit IDs of server admins. Valheim 1.0 requires the `V_` prefix in-game (e.g. `V_76561198...`) — a bare ID is auto-prefixed at deploy time, so either form works. |
 | `allowed_ssh_ips` | No | `["0.0.0.0/0", "::/0"]` | IP ranges allowed to SSH in |
 | `discord_webhook_url` | No | `""` | Discord webhook URL (enables notifications) |
 
