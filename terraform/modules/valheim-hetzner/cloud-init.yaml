@@ -15,9 +15,12 @@ runcmd:
   - echo "vm.swappiness=10" >> /etc/sysctl.conf
 
   # Write admin list
+  # Valheim 1.0 requires platform-prefixed player IDs here (e.g. "V_<SteamID64>"
+  # for Steam) — a bare SteamID64 is silently ignored in-game even though the
+  # file itself looks correct. Normalize so a bare ID still works.
   - truncate -s 0 /mnt/valheim-world/adminlist.txt
 %{ for id in valheim_admin_ids ~}
-  - echo "${id}" >> /mnt/valheim-world/adminlist.txt
+  - echo "${startswith(id, "V_") ? id : "V_${id}"}" >> /mnt/valheim-world/adminlist.txt
 %{ endfor ~}
 
   # Install Thunderstore BepInEx mods
