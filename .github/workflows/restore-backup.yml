@@ -51,12 +51,19 @@ jobs:
       - name: Upload and restore backup
         run: |
           scp restore/world-backup.tar.gz root@${{ env.SERVER_HOST }}:/tmp/world-restore.tar.gz
-          ssh root@${{ env.SERVER_HOST }} "
+          ssh root@${{ env.SERVER_HOST }} '
+            set -euo pipefail
             cd /mnt/valheim-world
-            tar -xzf /tmp/world-restore.tar.gz --overwrite
+            # Clear the exact paths this backup owns first — a Valheim 1.0+
+            # world is a directory of chunk files, so --overwrite alone would
+            # leave stray newer chunks behind instead of a byte-for-byte restore.
+            tar -tzf /tmp/world-restore.tar.gz | cut -d/ -f1-2 | sort -u | while read -r entry; do
+              rm -rf "$entry"
+            done
+            tar -xzf /tmp/world-restore.tar.gz
             rm /tmp/world-restore.tar.gz
-            echo 'Restore complete.'
-          "
+            echo "Restore complete."
+          '
 
       - name: Start Valheim container
         run: |
