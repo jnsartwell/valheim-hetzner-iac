@@ -41,7 +41,7 @@ module "valheim" {
   thunderstore_mods = {
     Server_devcommands = {
       namespace = "JereKuusela"
-      version   = "1.102.0"
+      version   = "1.110.0"
     }
   }
 }
