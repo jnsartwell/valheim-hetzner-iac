@@ -118,9 +118,15 @@ write_files:
       source /opt/valheim/docker/.env
       mkdir -p "$${BACKUP_DIR}"
       echo "[backup] Backing up world '$${WORLD_NAME}' at $${TIMESTAMP}"
-      tar -czf "$${BACKUP_FILE}" -C "$${WORLD_DIR}" \
-        "worlds_local/$${WORLD_NAME}.db" \
-        "worlds_local/$${WORLD_NAME}.fwl"
+      if [ -d "$${WORLD_DIR}/worlds_local/$${WORLD_NAME}" ]; then
+        # Valheim 1.0+ world format: one directory per world (chunked saves)
+        tar -czf "$${BACKUP_FILE}" -C "$${WORLD_DIR}" "worlds_local/$${WORLD_NAME}"
+      else
+        # Pre-1.0 world format: flat .db/.fwl pair
+        tar -czf "$${BACKUP_FILE}" -C "$${WORLD_DIR}" \
+          "worlds_local/$${WORLD_NAME}.db" \
+          "worlds_local/$${WORLD_NAME}.fwl"
+      fi
       echo "[backup] Written to $${BACKUP_FILE}"
       find "$${BACKUP_DIR}" -name "world_*.tar.gz" -mtime "+$${RETENTION_DAYS}" -delete
       echo "[backup] Pruned backups older than $${RETENTION_DAYS} days"
