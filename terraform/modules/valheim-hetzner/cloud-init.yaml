@@ -149,6 +149,7 @@ write_files:
       MANIFEST="/opt/valheim/dl/server/steamapps/appmanifest_896660.acf"
       STATE_FILE="/config/.last_known_buildid"
       BROKEN_FLAG="/config/.buildid_check_broken"
+      LAST_FAILURE_FILE="/config/.last_notified_update_failure"
 
       notify() {
         [ -n "$${DISCORD_WEBHOOK_URL:-}" ] || return 0
@@ -189,5 +190,16 @@ write_files:
 
       UPDATE_RESULT=$(manifest_field UpdateResult)
       if [ -n "$${UPDATE_RESULT}" ] && [ "$${UPDATE_RESULT}" != "0" ]; then
-        notify "last update attempt failed (UpdateResult=$${UPDATE_RESULT}) -- check logs."
+        # Only re-notify if this is a new failure (first one, or a different
+        # UpdateResult code) -- a repeat of the same failure stays silent so a
+        # stuck update doesn't spam Discord every check cycle.
+        LAST_NOTIFIED_FAILURE=$(cat "$${LAST_FAILURE_FILE}" 2>/dev/null || true)
+        if [ "$${UPDATE_RESULT}" != "$${LAST_NOTIFIED_FAILURE}" ]; then
+          notify "last update attempt failed (UpdateResult=$${UPDATE_RESULT}) -- check logs."
+          echo "$${UPDATE_RESULT}" > "$${LAST_FAILURE_FILE}"
+        fi
+      else
+        # Clear so a future failure -- even one with the same code -- notifies
+        # again after a successful recovery in between.
+        rm -f "$${LAST_FAILURE_FILE}"
       fi
