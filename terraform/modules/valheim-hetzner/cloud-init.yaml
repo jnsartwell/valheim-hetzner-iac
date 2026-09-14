@@ -71,11 +71,6 @@ write_files:
             POST_BOOTSTRAP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Bootstrap complete.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             PRE_BACKUP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Starting backup...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             POST_BACKUP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Backup complete.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
-            # Only notifies Discord when an update was actually applied (or the
-            # last attempt failed) -- routine idle-gated checks stay silent.
-            # Logic lives in /scripts/update-notify.sh (bind-mounted read-only
-            # from /opt/valheim/scripts, written below) rather than inline here,
-            # since buildid-diffing is too much to keep readable as a hook string.
             POST_UPDATE_CHECK_HOOK: "/scripts/update-notify.sh"
             PRE_START_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Starting server...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             POST_START_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Server started.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
