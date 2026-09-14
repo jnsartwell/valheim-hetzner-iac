@@ -71,8 +71,12 @@ write_files:
             POST_BOOTSTRAP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Bootstrap complete.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             PRE_BACKUP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Starting backup...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             POST_BACKUP_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Backup complete.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
-            PRE_UPDATE_CHECK_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Checking for updates...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
-            POST_UPDATE_CHECK_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Update check complete.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
+            # Only notifies Discord when an update was actually applied (or the
+            # last attempt failed) -- routine idle-gated checks stay silent.
+            # Logic lives in /scripts/update-notify.sh (bind-mounted read-only
+            # from /opt/valheim/scripts, written below) rather than inline here,
+            # since buildid-diffing is too much to keep readable as a hook string.
+            POST_UPDATE_CHECK_HOOK: "/scripts/update-notify.sh"
             PRE_START_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Starting server...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             POST_START_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Server started.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
             PRE_RESTART_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Restarting server...\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
@@ -85,6 +89,7 @@ write_files:
             POST_SERVER_SHUTDOWN_HOOK: "[ -n \"$${DISCORD_WEBHOOK_URL}\" ] && curl -sfSL -X POST -H 'Content-Type: application/json' -d '{\"content\":\"$${SERVER_NAME}: Server shutdown complete.\"}' \"$${DISCORD_WEBHOOK_URL}\" || true"
           volumes:
             - /mnt/valheim-world:/config
+            - /opt/valheim/scripts:/scripts:ro
           cap_add:
             - sys_nice
           stop_grace_period: 60s
@@ -132,3 +137,57 @@ write_files:
       echo "[backup] Written to $${BACKUP_FILE}"
       find "$${BACKUP_DIR}" -name "world_*.tar.gz" -mtime "+$${RETENTION_DAYS}" -delete
       echo "[backup] Pruned backups older than $${RETENTION_DAYS} days"
+
+  - path: /opt/valheim/scripts/update-notify.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      # Runs as POST_UPDATE_CHECK_HOOK inside the valheim-server container after
+      # every idle-gated update check. Only posts to Discord when the installed
+      # build actually changed, or the last update attempt failed -- routine
+      # checks that find nothing stay silent. Degrades gracefully (one-time
+      # alert, never a crash) if the manifest path or format ever drifts from
+      # what's hardcoded below.
+
+      MANIFEST="/opt/valheim/dl/server/steamapps/appmanifest_896660.acf"
+      STATE_FILE="/config/.last_known_buildid"
+      BROKEN_FLAG="/config/.buildid_check_broken"
+
+      notify() {
+        [ -n "$${DISCORD_WEBHOOK_URL:-}" ] || return 0
+        curl -sfSL --max-time 10 -X POST \
+          -H 'Content-Type: application/json' \
+          -d "{\"content\":\"$${SERVER_NAME}: $1\"}" \
+          "$${DISCORD_WEBHOOK_URL}" || true
+      }
+
+      if [ ! -f "$${MANIFEST}" ]; then
+        MANIFEST=$(find /opt/valheim -maxdepth 5 -iname "appmanifest_896660.acf" 2>/dev/null | head -1 || true)
+      fi
+
+      CURRENT_BUILD=""
+      if [ -n "$${MANIFEST}" ] && [ -f "$${MANIFEST}" ]; then
+        CURRENT_BUILD=$(grep -m1 '"buildid"' "$${MANIFEST}" 2>/dev/null | grep -oE '[0-9]+' || true)
+      fi
+
+      if [ -z "$${CURRENT_BUILD}" ]; then
+        if [ ! -f "$${BROKEN_FLAG}" ]; then
+          touch "$${BROKEN_FLAG}"
+          notify "update-tracking can't read the installed build (manifest missing or unparseable) -- image or Steam format may have changed, check update-notify.sh."
+        fi
+        exit 0
+      fi
+      rm -f "$${BROKEN_FLAG}"
+
+      PREV_BUILD=$(cat "$${STATE_FILE}" 2>/dev/null || true)
+      if [ -n "$${PREV_BUILD}" ] && [ "$${CURRENT_BUILD}" != "$${PREV_BUILD}" ]; then
+        notify "update applied -- build $${PREV_BUILD} -> $${CURRENT_BUILD}."
+      fi
+      echo "$${CURRENT_BUILD}" > "$${STATE_FILE}"
+
+      UPDATE_RESULT=$(grep -m1 '"UpdateResult"' "$${MANIFEST}" 2>/dev/null | grep -oE '[0-9]+' || true)
+      if [ -n "$${UPDATE_RESULT}" ] && [ "$${UPDATE_RESULT}" != "0" ]; then
+        notify "last update attempt failed (UpdateResult=$${UPDATE_RESULT}) -- check logs."
+      fi
