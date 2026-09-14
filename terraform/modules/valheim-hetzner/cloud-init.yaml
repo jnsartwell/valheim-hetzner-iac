@@ -163,13 +163,18 @@ write_files:
           "$${DISCORD_WEBHOOK_URL}" || true
       }
 
+      # Reads a numeric field (e.g. buildid, UpdateResult) out of the manifest.
+      manifest_field() {
+        grep -m1 "\"$1\"" "$${MANIFEST}" 2>/dev/null | grep -oE '[0-9]+' || true
+      }
+
       if [ ! -f "$${MANIFEST}" ]; then
         MANIFEST=$(find /opt/valheim -maxdepth 5 -iname "appmanifest_896660.acf" 2>/dev/null | head -1 || true)
       fi
 
       CURRENT_BUILD=""
       if [ -n "$${MANIFEST}" ] && [ -f "$${MANIFEST}" ]; then
-        CURRENT_BUILD=$(grep -m1 '"buildid"' "$${MANIFEST}" 2>/dev/null | grep -oE '[0-9]+' || true)
+        CURRENT_BUILD=$(manifest_field buildid)
       fi
 
       if [ -z "$${CURRENT_BUILD}" ]; then
@@ -187,7 +192,7 @@ write_files:
       fi
       echo "$${CURRENT_BUILD}" > "$${STATE_FILE}"
 
-      UPDATE_RESULT=$(grep -m1 '"UpdateResult"' "$${MANIFEST}" 2>/dev/null | grep -oE '[0-9]+' || true)
+      UPDATE_RESULT=$(manifest_field UpdateResult)
       if [ -n "$${UPDATE_RESULT}" ] && [ "$${UPDATE_RESULT}" != "0" ]; then
         notify "last update attempt failed (UpdateResult=$${UPDATE_RESULT}) -- check logs."
       fi
